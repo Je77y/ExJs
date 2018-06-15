@@ -13,11 +13,7 @@
   <div class="container mt-5">
     <div class="row justify-content-md-cente">
       <div class="col-md-8 col-sm-10 mx-auto">
-        <div class="alert alert-success alert-dismissible fade hide" role="alert">
-          <strong>Thành công! </strong><span id="show-date"></span>
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+        <div class="alert alert-success" id="show-date" role="alert" style="display: none">
         </div>
       </div>
     </div>
@@ -43,16 +39,29 @@
   <script src="js/bootstrap.min.js"></script>
   <script>
   const REGEX_DATE = /^(([0-9]{3}[1-9]{1})\-(([1]{1}[0-2]{1})|([1-9]{1})|([0]{1}[1-9]{1}))\-(([0-2]{1}[0-9]{1})|([3]{1}[0-1]{1})|([1-9]{1})))$/;
+  const TIME_ALERT = 2;
 
   const weekday = ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"];
   const month30 = [4, 6, 9, 11];
-  const month31 = [1, 3, 5, 7, 8, 10, 12];
 
   let date = document.querySelector('[name="date"]');
   let submit = document.querySelector('[type="submit"]');
 
+  function checkItemInArr(arr, obj) {
+    return (arr.indexOf(obj) != -1);
+  }
+
   function checkRex(value) {
     return REGEX_DATE.test(value);
+  }
+
+  function showAler(element, text) {
+    element.innerText = text;
+    element.style.display = "block";
+  }
+
+  function hideAler(element) {
+    element.style.display = "none";
   }
 
   function showError(mss) {
@@ -68,37 +77,45 @@
   }
 
   submit.onclick = function() {
-  	let suc = document.querySelector('#show-date');
-  	let val = date.value;
-  	let mss = '';
+    let suc = document.querySelector('#show-date');
+    let val = date.value;
+    let mss = '';
 
     if (val == '') {
+      hideAler(suc);
       mss = "Bắt buộc phải nhập";
       showError(mss);
       return false;
     }
 
     if (!checkRex(val)) {
+      hideAler(suc);
       mss = "Không đúng đinh dạng"
       showError(mss);
       return false;
     }
 
-    var arr = val.split("-").map(Number);
-    // var arr = val.split("-");
+    let arr = val.split("-").map(Number);
     let [year, month, day] = arr;
-    let rddata = new Date(year, month, day);
-    if (rddata.getMonth() == 2 && (rddata.getFullYear() % 4 != 0 || rddata.getFullYear() % 100 != 0)) {
-    	mss = "Ngày không hợp lệ";
-    	showError(mss);
-    	return false;    
+    let rddata = new Date(year, month - 1, day);
+
+    if (month == 2 && (year % 4 != 0 && day == 29)) {
+      hideAler(suc);
+      mss = "Ngày không hợp lệ";
+      showError(mss);
+      return false;
+    }
+
+    if (day == 31 && checkItemInArr(month30, month)) {
+      hideAler(suc);
+      mss = "Ngày không hợp lệ";
+      showError(mss);
+      return false;
     }
 
     removeError();
-    suc.innerText = `${weekday[rddata.getDay()]} ngay ${rddata.getDate()} thang ${rddata.getMonth()} nam ${rddata.getFullYear()}`;
-
-    let ale = suc.parentElement;
-    ale.classList.add('show');
+    showAler(suc, `${weekday[rddata.getDay()]} ngày ${day} tháng ${month} năm ${year}`);
+    
     return false;
   }
   </script>
