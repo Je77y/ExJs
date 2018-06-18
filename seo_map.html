@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Search nearby restaurants</title>
+  <link rel="stylesheet" href="">
+  <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+  <style>
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  #map {
+    position: initial !important;
+    overflow: hidden !important;
+    height: 0;
+  }
+  </style>
+</head>
+
+<body>
+  <div class="container mt-2">
+    <div class="row justify-content-md-cente">
+      <div class="offset-md-4 col-md-2 col-sm-3">
+        <select class="custom-select">
+          <option selected value="1">1 kilometers</option>
+          <option value="3">3 kilometers</option>
+          <option value="5">5 kilometers</option>
+          <option value="8">8 kilometers</option>
+          <option value="10">10 kilometers</option>
+        </select>
+      </div>
+      <div class="col-md-2 col-sm-3">
+        <button type="button" class="btn btn-primary">Search</button>
+      </div>
+    </div>
+    <div class="row justify-content-md-cente mt-5">
+      <div class="embed-responsive embed-responsive-21by9">
+        <div class="embed-responsive-item" style="width: 100%" id="map">
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="js/jquery-3.3.1.min.js"></script>
+  <script src="js/popper.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script>
+  var map;
+  var myLatLng = { lat: 21.0167458, lng: 105.7814344 };
+  let sel_cus = document.querySelector('.custom-select');
+  let search = document.querySelector('.btn.btn-primary');
+  let sel_km = sel_cus.options[sel_cus.selectedIndex].value;
+  let rad = sel_km * 1000;
+
+  sel_cus.onchange = function() {
+    sel_km = sel_cus.value;
+    rad = sel_km * 1000;
+  }
+
+  search.onclick = function() {
+    initMap();
+  }
+
+  function callback(results, status) {
+    console.log(results);
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
+      for (var i = 0; i < results.length; i++) {
+        createMarker(results[i]);
+      }
+    }
+  }
+
+  function createMarker(place) {
+    var placeLoc = place.geometry.location;
+    var marker = new google.maps.Marker({
+      map: map,
+      position: place.geometry.location
+    });
+
+    google.maps.event.addListener(marker, 'click', function() {
+      infowindow.setContent(place.name);
+      infowindow.open(map, this);
+    });
+  }
+
+
+  function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: myLatLng,
+      zoom: 14,
+
+    });
+
+    var marker = new google.maps.Marker({
+      position: myLatLng,
+      map: map,
+      title: 'Hello World!'
+    });
+
+    var cityCircle = new google.maps.Circle({
+      strokeColor: '#FF0000',
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#FF0000',
+      fillOpacity: 0.35,
+      map: map,
+      center: myLatLng,
+      radius: rad
+    });
+
+    infowindow = new google.maps.InfoWindow();
+    var service = new google.maps.places.PlacesService(map);
+    service.nearbySearch({
+      location: myLatLng,
+      radius: rad,
+      type: ['restaurant']
+    }, callback);
+  }
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWWg9MKJRW1qrBxDF-TrZJMX5c0te02NU&callback=initMap&libraries=places" async defer></script>
+</body>
+
+</html>
